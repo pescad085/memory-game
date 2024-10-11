@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+            body {
+            font-family: Arial, sans-serif;
+            background-color: #fd6060;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .score {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 10px;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #f0f0f0;
+            border: 2px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card.flipped {
+            background-color: #fff;
+        }
+
+        .card.matched {
+            visibility: hidden;
+        }
+
+        .reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>Memory Game</h1>
+    <div class="score"> score <span id="score">0</span> </div>
+    <div class="game-board"></div>
+    <button class="reset-button" onclick="resetGame()">Reset Game</button>
+    <script>
+        let emojis = ['🍎', '🍌', '🍇', '🍓', '🍉', '🍒'];
+        let emojiArray = [];
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false;
+        let matchesFound = 0;
+        let score = 0;
+        const gameBoard = document.querySelector('.game-board');
+        const scoreDisplay = document.getElementById('score');
+        const resetButton = document.querySelector('.reset-button');
+
+        // Function to shuffle emojis and initialize the game board
+        function initGame() {
+            // Duplicate and shuffle emojis for the game board
+            emojiArray = [...emojis, ...emojis];
+            emojiArray = emojiArray.sort(() => 0.5 - Math.random());
+
+            // Reset game variables
+            matchesFound = 0;
+            gameBoard.innerHTML = ''; // Clear the game board
+
+            // Create cards
+            emojiArray.forEach((emoji, index) => {
+                const card = document.createElement('div');
+
+                card.classList.add('card');
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+                card.textContent = emoji; // Show the emoji immediately
+                gameBoard.appendChild(card);
+            });
+
+            // Show all cards for 3 seconds
+            setTimeout(hideAllCards, 3000);
+        }
+
+        // Function to hide all cards after 3 seconds
+        function hideAllCards() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.textContent = ''; // Hide the emoji
+                card.classList.remove('flipped');
+                card.addEventListener('click', flipCard); // Add event listener to each card
+            });
+        }
+
+        // Function to handle card flip
+        function flipCard() {
+            if (lockBoard) return; // Prevent clicking when waiting for cards to reset
+            if (this === firstCard) return; // Prevent double-clicking the same card
+
+            this.classList.add('flipped');
+            this.textContent = this.dataset.emoji;
+
+            if (!firstCard) {
+                firstCard = this;
+            } else {
+                secondCard = this;
+                lockBoard = true; // Lock board until we check for a match
+                checkForMatch();
+            }
+        }
+
+        // Function to check if two flipped cards match
+        function checkForMatch() {
+
+
+
+
+            const isMatch = firstCard.dataset.emoji === secondCard.dataset.emoji;
+
+            if (isMatch) {
+                disableCards();
+                matchesFound++;
+                score++;
+                updateScore();
+
+                if (matchesFound === emojis.length) {
+                    setTimeout(() => {
+                        alert('You won! All matches found!');
+                        resetGame(); // Reset the game when all matches are found
+                    }, 500);
+                }
+            } else {
+                unflipCards();
+            }
+        }
+
+
+
+
+
+        // Function to disable matched cards
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            resetBoard();
+        }
+
+        // Function to unflip unmatched cards
+        function unflipCards() {
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped'
+                );
+                firstCard.textContent = '';
+                secondCard.textContent = '';
+                resetBoard();
+            }, 1000);
+        }
+
+
+
+
+        // Function to reset the board for the next turn
+        function resetBoard() {
+            [firstCard, secondCard] = [null, null];
+            lockBoard = false;
+        }
+
+        // Function to update the score display
+        function updateScore() {
+            scoreDisplay.textContent = score;
+        }
+
+        // Function to reset the game manually
+        function resetGame() {
+            score = 0; // Reset score
+            updateScore();
+            initGame();
+        }
+
+        // Initialize the game for the first time
+        initGame();
+    </script>
+
+</body>
+
+</html>
